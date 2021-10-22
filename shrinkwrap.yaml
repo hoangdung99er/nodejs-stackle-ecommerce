@@ -3,6 +3,7 @@ dependencies:
   cloudinary: 1.27.1
   cookie-parser: 1.4.5
   cors: 2.8.5
+  dotenv: 10.0.0
   express: 4.17.1
   express-fileupload: 1.2.1
   jsonwebtoken: 8.5.1
@@ -228,6 +229,12 @@ packages:
       node: '>=4.5.0'
     resolution:
       integrity: sha512-MdceRRWqltEG2dZqO769g27N/3PXfcKl04VhYnBlo2YhH7zPi88VebsjTKclaOyiuMaGU72hTfw3VkUitGcVCA==
+  /dotenv/10.0.0:
+    dev: false
+    engines:
+      node: '>=10'
+    resolution:
+      integrity: sha512-rlBi9d8jpv9Sf1klPjNfFAuWDjKLwTIJJ/VxtoTwIR6hnZxcEOQCZg2oIL3MWBYw5GpUDKOEnND7LXTbIpQ03Q==
   /ecdsa-sig-formatter/1.0.11:
     dependencies:
       safe-buffer: 5.2.1
@@ -869,6 +876,7 @@ specifiers:
   cloudinary: ^1.27.1
   cookie-parser: ^1.4.5
   cors: ^2.8.5
+  dotenv: ^10.0.0
   express: ^4.17.1
   express-fileupload: ^1.2.1
   jsonwebtoken: ^8.5.1
