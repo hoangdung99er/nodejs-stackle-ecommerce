@@ -8,7 +8,11 @@ const sendToken = (user, statusCode, res) => {
       Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000
     ),
     httpOnly: true,
-    signed: true
+    signed: true,
+    sameSite : "none",
+    secure : true,
+    // sameSite: process.env.NODE_ENV === "development" ? true : "none",
+    //   secure: process.env.NODE_ENV === "development" ? false : true,
   };
 
   res

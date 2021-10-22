@@ -5,6 +5,7 @@ const fs = require("fs");
 const morgan = require("morgan");
 const product = require("./src/routes/productRoute");
 const user = require("./src/routes/userRoute");
+const payment = require("./src/routes/paymentRoute");
 const order = require("./src/routes/orderRoute");
 const errorMiddleware = require("./src/middleware/error.js");
 const ErrorHandler = require("./src/utils/errorHandler.js");
@@ -21,25 +22,32 @@ const accessLogStream = fs.createWriteStream(
   }
 );
 
+const corsOptions = {
+  origin: true, //included origin as true
+  credentials: true //included credentials as true
+};
+
 //Middleware handle req
 app.use(
   isProduct ? morgan("combined", { stream: accessLogStream }) : morgan("dev")
 );
 
-app.use(fileUpload({
-  createParentPath :true
-}));
-app.use(cors());
+app.use(
+  fileUpload({
+    createParentPath: true
+  })
+);
+app.use(cors(corsOptions));
 // Handle request to json
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cookieParser(process.env.COOKIE_SECRET));
-
 
 //Routes import
 app.use("/api/v1", product);
 app.use("/api/v1", user);
 app.use("/api/v1", order);
+app.use("/api/v1", payment);
 
 app.use(NotFound);
 app.use(errorMiddleware);

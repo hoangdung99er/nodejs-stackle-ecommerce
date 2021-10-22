@@ -39,7 +39,7 @@ const userSchema = new Schema({
   },
   resetPasswordToken: String,
   resetPasswordExpired: Date
-});
+}, {timestamps : true});
 
 // Pre set encrypt password before save onto database
 userSchema.pre("save", async function(next) {

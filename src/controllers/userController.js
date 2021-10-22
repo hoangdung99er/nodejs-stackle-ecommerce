@@ -9,19 +9,17 @@ const cloudinary = require("cloudinary");
 
 // Register a user
 exports.register = catchAsyncError(async (req, res, next) => {
-  const { name, email, password } = req.body;
-  
-  console.log(req.files)
-  
-  if(!req.files || Object.keys(req.files).length === 0) {
+  const { name, email, password, file } = req.body;
+
+  if (!file) {
     return next(new ErrorHandler("No Files were uploaded", 400));
   }
-  
-  const myCloud = await cloudinary.v2.uploader.upload(req.files.avatar, {
-    folder : "avatars",
-    width : 150,
-    crop : "scale",
-  })
+
+  const myCloud = await cloudinary.v2.uploader.upload(file, {
+    folder: "avatars",
+    width: 150,
+    crop: "scale"
+  });
 
   const user = await User.create({
     name,
@@ -62,7 +60,9 @@ exports.loginUser = catchAsyncError(async (req, res, next) => {
 exports.logout = catchAsyncError(async (req, res, next) => {
   res.cookie("token", null, {
     expires: new Date(Date.now()),
-    httpOnly: true
+    httpOnly: true,
+    sameSite: "none",
+    secure: true
   });
 
   res.status(200).json({
@@ -84,9 +84,11 @@ exports.forgotPassword = catchAsyncError(async (req, res, next) => {
 
   await user.save({ validateBeforeSave: false });
 
+  // ${req.protocol}://${req.get("host")}
+
   const resetPasswordUrl = `${req.protocol}://${req.get(
     "host"
-  )}/api/v1/password/reset/${resetToken}`;
+  )}/password/reset/${resetToken}`;
 
   const message = `Your password reset token is :- \n\n ${resetPasswordUrl} \n\nIf you have not requested this email then please ignore it`;
 
@@ -180,11 +182,30 @@ exports.updatePassword = catchAsyncError(async (req, res, next) => {
 
 // Update name and email
 exports.updateProfile = catchAsyncError(async (req, res, next) => {
-  const { name, email } = req.body;
+  const { name, email, file } = req.body;
+
   const newUserData = {
     name,
     email
   };
+
+  if (file !== "") {
+    const user = await User.findById(req.user.id);
+    const imageId = user.avatar.public_id;
+
+    await cloudinary.v2.uploader.destroy(imageId);
+
+    const myCloud = await cloudinary.v2.uploader.upload(file, {
+      folder: "avatars",
+      width: 150,
+      crop: "scale"
+    });
+
+    newUserData.avatar = {
+      public_id: myCloud.public_id,
+      url: myCloud.secure_url
+    };
+  }
 
   const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
     new: true,
@@ -193,11 +214,12 @@ exports.updateProfile = catchAsyncError(async (req, res, next) => {
   });
 
   res.status(200).json({
-    success: true
+    success: true,
+    user
   });
 });
 
-// Update all users -- (admin)
+// Get all users -- (admin)
 exports.getAllUser = catchAsyncError(async (req, res, next) => {
   const users = await User.find();
 
@@ -227,13 +249,30 @@ exports.getSingleUser = catchAsyncError(async (req, res, next) => {
 exports.updateUser = catchAsyncError(async (req, res, next) => {
   const { name, email, role } = req.body;
 
-  const user = await User.findById(req.params.id);
+  let user = await User.findById(req.params.id);
 
   if (!user) {
     return next(
       new ErrorHandler(`User does not exist with id! ${req.params.id}`, 404)
     );
   }
+
+  //   if (avatar !== "") {
+  //     const imageId = user.avatar.public_id;
+
+  //     await cloudinary.v2.uploader.destroy(imageId);
+
+  //     const myCloud = await cloudinary.v2.uploader.upload(avatar, {
+  //       folder: "avatars",
+  //       width: 150,
+  //       crop: "scale"
+  //     });
+
+  //     user.avatar = {
+  //       public_id: myCloud.public_id,
+  //       url: myCloud.secure_url
+  //     };
+  //   }
 
   user.name = name;
   user.email = email;
@@ -256,6 +295,10 @@ exports.deleteUser = catchAsyncError(async (req, res, next) => {
     );
   }
 
+  const imageId = user.avatar.public_id;
+
+  await cloudinary.v2.uploader.destroy(imageId);
+
   await user.remove();
 
   res.status(200).json({
@@ -263,5 +306,3 @@ exports.deleteUser = catchAsyncError(async (req, res, next) => {
     message: "User deleted successfully"
   });
 });
-
-
