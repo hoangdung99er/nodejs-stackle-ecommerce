@@ -55,15 +55,15 @@ exports.getSingleOrder = catchAsyncError(async (req, res, next) => {
 
 // Get Logged in user Orders
 exports.myOrders = catchAsyncError(async (req, res, next) => {
-  const order = await Order.find({ user: req.user.id });
+  const orders = await Order.find({ user: req.user.id });
 
-  if (!order) {
-    return next(new ErrorHandler(`Order not found!`, 404));
+  if (!orders) {
+    return next(new ErrorHandler(`Orders not found!`, 404));
   }
 
   res.status(200).json({
     success: true,
-    order
+    orders
   });
 });
 
@@ -96,9 +96,11 @@ exports.updateOrder = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("You have already delivered this order", 400));
   }
 
-  order.orderItems.forEach(async function(order) {
-    await updateStock(order.product, order.quantity);
-  });
+  if (req.body.status === "Delivered") {
+    order.orderItems.forEach(async function(order) {
+      await updateStock(order.product, order.quantity);
+    });
+  }
 
   order.orderStatus = req.body.status;
 
