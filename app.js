@@ -27,6 +27,10 @@ const corsOptions = {
   credentials: true //included credentials as true
 };
 
+if (process.env.NODE_ENV !== "PRODUCTION") {
+  require("dotenv").config({ path: "config/config.env" });
+}
+
 //Middleware handle req
 app.use(
   isProduct ? morgan("combined", { stream: accessLogStream }) : morgan("dev")
